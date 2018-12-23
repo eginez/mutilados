@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"image"
-	"image/color"
 	"image/png"
 	"log"
 	"math"
@@ -24,12 +23,12 @@ func main() {
 
 	img, err := png.Decode(imageFile)
 	panicIfError(err)
-	parts, err := generateParts(img)
+	parts, err := generateParts(img, false)
 	panicIfError(err)
 	log.Println(len(parts))
 }
 
-func generateParts(fullImage image.Image) (parts []*image.RGBA, err error) {
+func generateParts(fullImage image.Image, writeImage bool) (parts []*image.RGBA, err error) {
 	rgbImage := fullImage.(*image.RGBA)
 	xParts := 3
 	yParts := 2
@@ -58,7 +57,9 @@ func generateParts(fullImage image.Image) (parts []*image.RGBA, err error) {
 			log.Println(subImgRect)
 			subImage := rgbImage.SubImage(subImgRect)
 			parts = append(parts, subImage.(*image.RGBA))
-			//err = saveImage(subImage, fmt.Sprintf("mutilados%d%d.png", x, y))
+			if writeImage {
+				saveImage(subImage, fmt.Sprintf("out/mutilados%d%d.png", x, y))
+			}
 		}
 	}
 	return
@@ -79,12 +80,30 @@ func saveImage(img image.Image, name string) error {
 	return nil
 }
 
-type myimg interface {
-	At(x, y int) color.Color
-	Bounds() image.Rectangle
+// findBorders finds the 4 borders of an image of width borderWidth
+func findBorders(borderWidth int, img image.Image) (imgs []image.Image) {
+	max := img.Bounds().Max
+	borders := make([]image.Rectangle, 4)
+	imgs = make([]image.Image, 4)
+	borders[0] = image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{borderWidth, max.Y}}
+	borders[1] = image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{max.X, borderWidth}}
+	borders[2] = image.Rectangle{Min: image.Point{max.X - borderWidth, 0}, Max: max}
+	borders[3] = image.Rectangle{Min: image.Point{0, max.Y - borderWidth}, Max: max}
+
+	type divisibleImg interface {
+		SubImage(image.Rectangle) image.Image
+	}
+
+	for i, r := range borders {
+		if divImg, ok := img.(divisibleImg); ok {
+			imgs[i] = divImg.SubImage(r)
+		}
+	}
+
+	return imgs
 }
 
-func rotate(angle float64, img myimg) (res *image.RGBA, err error) {
+func rotate(angle float64, img image.Image) (res *image.RGBA, err error) {
 	rotMatrix := rotationMarix(angle)
 	posVector := newMat(1, 2)
 	maxX := img.Bounds().Max.X

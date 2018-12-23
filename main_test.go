@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image"
 	"image/png"
 	"math"
 	"os"
@@ -34,10 +33,10 @@ func TestRotation(t *testing.T) {
 	img, _ := png.Decode(imageFile)
 
 	angle := math.Pi / 2
-	r1, _ := rotate(angle, img.(*image.NRGBA))
-	r2, _ := rotate(2*angle, img.(*image.NRGBA))
-	r3, _ := rotate(3*angle, img.(*image.NRGBA))
-	r4, _ := rotate(4*angle, img.(*image.NRGBA))
+	r1, _ := rotate(angle, img)
+	r2, _ := rotate(2*angle, img)
+	r3, _ := rotate(3*angle, img)
+	r4, _ := rotate(4*angle, img)
 
 	saveImage(r1, "out/r1.png")
 	saveImage(r2, "out/r2.png")
