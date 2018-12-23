@@ -3,6 +3,7 @@ package main
 import (
 	"image/png"
 	"math"
+	"net/http"
 	"os"
 	"testing"
 
@@ -43,4 +44,15 @@ func TestRotation(t *testing.T) {
 	saveImage(r3, "out/r3.png")
 	saveImage(r4, "out/r4.png")
 
+}
+
+func TestFindBorders(t *testing.T) {
+	r, err := http.Get("https://www.gstatic.com/webp/gallery3/1.png")
+	assert.NoError(t, err)
+	img, err := png.Decode(r.Body)
+	assert.NoError(t, err)
+	b, err := findBorders(2, img)
+	assert.NoError(t, err)
+	assert.Equal(t, 4, len(b))
+	saveImage(b[0], "out/b1.png")
 }

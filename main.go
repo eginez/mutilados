@@ -81,7 +81,7 @@ func saveImage(img image.Image, name string) error {
 }
 
 // findBorders finds the 4 borders of an image of width borderWidth
-func findBorders(borderWidth int, img image.Image) (imgs []image.Image) {
+func findBorders(borderWidth int, img image.Image) (imgs []image.Image, err error) {
 	max := img.Bounds().Max
 	borders := make([]image.Rectangle, 4)
 	imgs = make([]image.Image, 4)
@@ -97,10 +97,11 @@ func findBorders(borderWidth int, img image.Image) (imgs []image.Image) {
 	for i, r := range borders {
 		if divImg, ok := img.(divisibleImg); ok {
 			imgs[i] = divImg.SubImage(r)
+		} else {
+			return nil, fmt.Errorf("can not find borders")
 		}
 	}
-
-	return imgs
+	return imgs, nil
 }
 
 func rotate(angle float64, img image.Image) (res *image.RGBA, err error) {
